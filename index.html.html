@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DMPI-ICCC Loan Calculator</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #cfd6e0;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.card {
+    background: #f5f5f5;
+    padding: 40px;
+    width: 420px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+label {
+    display: block;
+    margin-top: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+.input-box {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 0 10px;
+}
+
+.input-box input {
+    border: none;
+    outline: none;
+    flex: 1;
+}
+
+.result-box {
+    margin-top: 25px;
+    padding: 20px;
+    border-radius: 15px;
+    background: #dff3e7;
+    border: 2px solid #8ed1a6;
+}
+
+.monthly {
+    font-size: 28px;
+    font-weight: bold;
+    color: #0a7a3d;
+}
+
+.line {
+    height: 1px;
+    background: #8ed1a6;
+    margin: 15px 0;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
+}
+
+/* remove arrows */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+input[type=number] {
+    -moz-appearance: textfield;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<div class="card">
+
+<h1>DMPI-ICCC Loan Calculator</h1>
+
+<label>Loan Amount</label>
+<div class="input-box">
+    <span>₱</span>
+    <input type="number" id="amount" oninput="calculateLoan()">
+</div>
+
+<label>Interest Rate (%)</label>
+<div class="input-box">
+    <input type="number" id="interest" oninput="calculateLoan()">
+    <span>%</span>
+</div>
+
+<label>Loan Term (Years)</label>
+<input type="number" id="years" oninput="calculateLoan()">
+
+<div class="result-box" id="resultBox" style="display:none;">
+    <p>Monthly Payment</p>
+    <div class="monthly" id="monthly"></div>
+
+    <div class="line"></div>
+
+    <div class="row">
+        <span>Total Payment:</span>
+        <span id="totalPayment"></span>
+    </div>
+
+    <div class="row">
+        <span>Total Interest:</span>
+        <span id="totalInterest"></span>
+    </div>
+</div>
+
+<table id="amortTable" style="display:none;">
+    <thead>
+        <tr>
+            <th>Month</th>
+            <th>Payment</th>
+            <th>Interest</th>
+            <th>Principal</th>
+            <th>Balance</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+</div>
+</div>
+
+<script>
+function formatPeso(num) {
+    return "₱" + num.toLocaleString('en-PH', {minimumFractionDigits: 2});
+}
+
+function calculateLoan() {
+    let amount = parseFloat(document.getElementById("amount").value);
+    let interest = parseFloat(document.getElementById("interest").value) / 100 / 12;
+    let months = parseFloat(document.getElementById("years").value) * 12;
+
+    if (!amount || !interest || !months) return;
+
+    let x = Math.pow(1 + interest, months);
+    let monthly = (amount * interest * x) / (x - 1);
+
+    let totalPayment = monthly * months;
+    let totalInterest = totalPayment - amount;
+
+    document.getElementById("monthly").innerHTML = formatPeso(monthly);
+    document.getElementById("totalPayment").innerHTML = formatPeso(totalPayment);
+    document.getElementById("totalInterest").innerHTML = formatPeso(totalInterest);
+
+    document.getElementById("resultBox").style.display = "block";
+
+    // AMORTIZATION TABLE
+    let tbody = document.querySelector("#amortTable tbody");
+    tbody.innerHTML = "";
+
+    let balance = amount;
+
+    for (let i = 1; i <= months; i++) {
+        let interestPay = balance * interest;
+        let principal = monthly - interestPay;
+        balance -= principal;
+
+        let row = `
+        <tr>
+            <td>${i}</td>
+            <td>${formatPeso(monthly)}</td>
+            <td>${formatPeso(interestPay)}</td>
+            <td>${formatPeso(principal)}</td>
+            <td>${formatPeso(Math.abs(balance))}</td>
+        </tr>`;
+        
+        tbody.innerHTML += row;
+    }
+
+    document.getElementById("amortTable").style.display = "table";
+}
+</script>
+
+</body>
+</html>
